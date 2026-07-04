@@ -39,6 +39,15 @@ int main(void) {
         continue;
     }
 
+    // リセットコマンド
+    if (strcmp(next_word, "reset") == 0) {
+        strcpy(history[0], "しりとり");
+        history_count = 1;
+        printf("\nリセットしました. 最初からプレイ\n\n");
+        continue;
+    }
+
+
     size_t prev_len = strlen(previous_word);
     if (prev_len <3 || len <3) {
         printf("ひらがなを入力してください\n\n");
