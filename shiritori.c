@@ -4,8 +4,11 @@
 #define MAX_WORD_LENGTH 256
 #define MAX_HISTORY 100
 
+
 int main(void) {
-    
+    int game_over = 0; // 0：ゲーム続行、1：ゲームオーバー
+
+    while (game_over == 0) {
     // 単語履歴を保持
     char history[MAX_HISTORY][MAX_WORD_LENGTH];
     int history_count = 0;
@@ -25,8 +28,11 @@ int main(void) {
 
         if (fgets(next_word, sizeof(next_word), stdin) == NULL) {
             printf("\nしりとりを終了します\n");
+            // 【修正】continue だと EOF 後も fgets が NULL を返し続けて無限ループになる。
+            //        game_over を立てて break し、内側ループを抜けて完全終了する。
+            game_over = 1;
             break;
-    }
+        }
 
     size_t len = strlen(next_word);
     if (len > 0 && next_word[len - 1] == '\n') {
@@ -61,9 +67,10 @@ int main(void) {
 
     // んで終わるかチェック
     if ((unsigned char)next_word[len - 3] == 0xE3 &&
-        (unsigned char)next_word[len - 2] == 0x83 &&
+        (unsigned char)next_word[len - 2] == 0x82 &&
         (unsigned char)next_word[len - 1] == 0x93) {
         printf("\n「%s」は「ん」で終わる単語です，ゲーム終了\n\n", next_word);
+        game_over = 1;
         break;
     }
 
@@ -72,11 +79,12 @@ int main(void) {
     for (int i = 0; i <history_count; i++) {
         if (strcmp(history[i], next_word) == 0) {
             duplicated = 1;
-            break;
+            continue;
         }
     }
     if (duplicated) {
         printf("\n「%s」はすでに使用した単語です．ゲーム終了\n\n", next_word);
+        game_over = 1;
         break;
     }
 
@@ -84,6 +92,7 @@ int main(void) {
     // 単語履歴に追加
     if (history_count >= MAX_HISTORY) {
         printf("\n履歴が最大数に達しました，ゲーム終了\n\n");
+        game_over = 1;
         break;
     }
     strcpy(history[history_count], next_word);
@@ -91,5 +100,26 @@ int main(void) {
     printf("\n");
     }
 
+
+    if (game_over == 1) {
+        printf("ゲームを続けますか？(y/n)");
+        char answer[MAX_WORD_LENGTH];
+        if (fgets(answer, sizeof(answer), stdin) == NULL) {
+            printf("ゲームを終了します\n");
+            break;
+        }
+        answer[strcspn(answer, "\n")] = '\0';
+        if (strcmp(answer, "y") == 0) {
+            game_over = 0;
+        history_count = 0;
+        strcpy(history[0], "しりとり");
+        continue;
+        }
+        if (strcmp(answer, "n") == 0) {
+            printf("ゲームを終了します\n");
+            break;
+        }
+    }
     return 0;
+    }
 }
