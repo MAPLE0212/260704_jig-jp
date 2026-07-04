@@ -4,21 +4,47 @@
 #define MAX_WORD_LENGTH 256
 
 int main(void) {
-    char input[MAX_WORD_LENGTH];
-
-    printf("単語を入力してください >");
     
-    if (fgets(input, sizeof(input), stdin) ==NULL) {
-        // "fgetsは標準入力（キーボード）から1行読み込む(Enterの改行含む)”
-        return 0;
+    char previous_word[MAX_WORD_LENGTH] = "しりとり";
+    char next_word[MAX_WORD_LENGTH];
+
+    printf("しりとりスタート！\n");
+    printf("(終了するには Ctrl+D を押してください)\n\n");
+
+    while (1) {
+        printf("前の単語: %s\n", previous_word);
+        printf("次の単語を入力してください >");
+
+        if (fgets(next_word, sizeof(next_word), stdin) == NULL) {
+            printf("\nしりとりを終了します\n");
+            break;
     }
 
-    // 末尾の改行を削除
-    size_t len = strlen(input); // 文字数を取得
-    if (len >0 && input[len - 1] == '\n') { // 末尾が改行なら
-        input[len - 1] = '\0'; // '\0'（文字列の終わり）に置き換えて消去
+    size_t len = strlen(next_word);
+    if (len > 0 && next_word[len - 1] == '\n') {
+        next_word[len - 1] = '\0';
+        len--;
     }
 
-    printf("入力された単語: %s\n", input);
+    // 空入力は無視
+    if (len == 0) {
+        continue;
+    }
+
+    size_t prev_len = strlen(previous_word);
+    if (prev_len <3 || len <3) {
+        printf("ひらがなを入力してください\n\n");
+        continue;
+    }
+
+    if (strncmp(previous_word + prev_len - 3, next_word, 3) == 0) {
+        // 末尾と先頭一致→previous_wordを更新
+        strcpy(previous_word, next_word);
+        printf("\n");
+    } else {
+        printf("エラー：前の単語に続いていません\n\n");
+    }
+    }
+
     return 0;
 }
