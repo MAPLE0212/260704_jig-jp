@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <stdlib.h>
+#include <time.h>
+
 #define MAX_WORD_LENGTH 256
 #define MAX_HISTORY 100
 
@@ -15,7 +18,10 @@ int main(void) {
     char next_word[MAX_WORD_LENGTH];
 
     // 最初の単語を追加
-    strcpy(history[0], "しりとり");
+    const char *initial_word[] = {"しりとり", "しりとりのし", "しりとりのと"};
+    srand((unsigned int)time(NULL));
+    int idx = rand() % 3;
+    strcpy(history[0], initial_word[idx]);
     history_count++;
 
     printf("しりとりスタート！\n");
@@ -28,8 +34,6 @@ int main(void) {
 
         if (fgets(next_word, sizeof(next_word), stdin) == NULL) {
             printf("\nしりとりを終了します\n");
-            // 【修正】continue だと EOF 後も fgets が NULL を返し続けて無限ループになる。
-            //        game_over を立てて break し、内側ループを抜けて完全終了する。
             game_over = 1;
             break;
         }
