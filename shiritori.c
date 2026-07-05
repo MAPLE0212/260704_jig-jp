@@ -7,9 +7,27 @@
 #define MAX_WORD_LENGTH 256
 #define MAX_HISTORY 100
 
+// ひらがな，カタカナ以外の入力を弾く
+int is_hiragana_katakana(const char *word, size_t len) {
+    if (len % 3 != 0) return 0;
+    // ↑3バイトずつ区切る
+    for (size_t i =0; i < len; i += 3) {
+        unsigned char b0 = (unsigned char)word[i];
+        unsigned char b1 = (unsigned char)word[i + 1];
+        if (b0 != 0xE3) return 0;         // 先頭は必ず 0xE3
+        if (b1 < 0x81 || b1 > 0x83) return 0;
+    }
+    return 1;
+}
+
 
 int main(void) {
     int game_over = 0; // 0：ゲーム続行、1：ゲームオーバー
+
+    // 最初の単語を追加
+    const char *initial_word[] = {"しりとり", "しりとりのし", "しりとりのと"};
+    srand((unsigned int)time(NULL));
+    
 
     while (game_over == 0) {
     // 単語履歴を保持
@@ -17,9 +35,7 @@ int main(void) {
     int history_count = 0;
     char next_word[MAX_WORD_LENGTH];
 
-    // 最初の単語を追加
-    const char *initial_word[] = {"しりとり", "しりとりのし", "しりとりのと"};
-    srand((unsigned int)time(NULL));
+    // 最初の単語をランダムに選択
     int idx = rand() % 3;
     strcpy(history[0], initial_word[idx]);
     history_count++;
@@ -57,10 +73,14 @@ int main(void) {
         continue;
     }
 
-
+    if (!is_hiragana_katakana(next_word, len)) {
+        printf("ひらがな，カタカナを入力してください\n\n");
+        continue;
+    }
+    // 二文字以上の単語を入力してください(バイト数を3→6に変更)
     size_t prev_len = strlen(previous_word);
-    if (prev_len <3 || len <3) {
-        printf("ひらがなを入力してください\n\n");
+    if (prev_len <6 || len <6) {
+        printf("二文字以上の単語を入力してください\n\n");
         continue;
     }
 
