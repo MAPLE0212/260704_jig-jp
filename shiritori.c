@@ -7,6 +7,20 @@
 #define MAX_WORD_LENGTH 256
 #define MAX_HISTORY 100
 
+// 3バイトのかな文字を番号(コードポイント)に変換。
+// カタカナならひらがなに寄せて返す（あ と ア を同じ値にする）
+int kana_code(const char *p) {
+    unsigned char b0 = (unsigned char)p[0];
+    unsigned char b1 = (unsigned char)p[1];
+    unsigned char b2 = (unsigned char)p[2];
+    // 3バイトから元の番号を組み立てる
+    int cp = ((b0 & 0x0F) << 12) | ((b1 & 0x3F) << 6) | (b2 & 0x3F);
+    // カタカナ(ァ〜ヶ)なら 0x60 引いてひらがなにする
+    if (cp >= 0x30A1 && cp <= 0x30F6) cp -= 0x60;
+    return cp;
+}
+
+
 // ひらがな，カタカナ以外の入力を弾く
 int is_hiragana_katakana(const char *word, size_t len) {
     if (len % 3 != 0) return 0;
@@ -19,7 +33,6 @@ int is_hiragana_katakana(const char *word, size_t len) {
     }
     return 1;
 }
-
 
 int main(void) {
     int game_over = 0; // 0：ゲーム続行、1：ゲームオーバー
@@ -84,15 +97,24 @@ int main(void) {
         continue;
     }
 
-    if (strncmp(previous_word + prev_len - 3, next_word, 3) != 0) {
+    // if (strncmp(previous_word + prev_len - 3, next_word, 3) != 0) {
+    //     printf("エラー：前の単語に続いていません\n\n");
+    //     continue;
+    // }
+
+    // バイト比較から番号比較に変更
+    if (kana_code(previous_word + prev_len - 3) != kana_code(next_word)) {
         printf("エラー：前の単語に続いていません\n\n");
         continue;
     }
 
-    // んで終わるかチェック
-    if ((unsigned char)next_word[len - 3] == 0xE3 &&
-        (unsigned char)next_word[len - 2] == 0x82 &&
-        (unsigned char)next_word[len - 1] == 0x93) {
+//     // んで終わるかチェック
+//     if (kana_code(next_word + len - 3) == 0x3093) {   // 0x3093 = ん
+//     printf("\n「%s」は「ん」で終わる単語です，ゲーム終了\n\n", next_word);
+//     game_over = 1;
+//     break;
+// }
+    if (kana_code(next_word + len - 3) == 0x3093) {   // 0x3093 = ん
         printf("\n「%s」は「ん」で終わる単語です，ゲーム終了\n\n", next_word);
         game_over = 1;
         break;
